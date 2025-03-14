@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import GreenButton from '../styles/greenButton';
 import Link from 'next/link';
 import { createClient } from "../../../utils/supabase/client";
@@ -9,6 +9,7 @@ const Register: React.FC = () => {
     const supabase = createClient();
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -40,11 +41,9 @@ const Register: React.FC = () => {
         const { data, error: signUpError } = await supabase.auth.signUp({
             email,
             password,
-            options: { data: { username } }
+            options: { data: { username, phone } }
         });
-    
-        console.log("Sign-up response:", data, signUpError);
-    
+
         if (signUpError) {
             setError(signUpError.message);
             setLoading(false);
@@ -58,70 +57,64 @@ const Register: React.FC = () => {
             return;
         }
     
-        setSuccess("Registration successful! Redirecting...");
+        setSuccess("Registration successful! Check your email for confirmation.");
         setLoading(false);
     };
-    
 
     return (
-        <div className="flex flex-col bg-kinda-dark items-center justify-center w-full mt-10">
+        <div className="flex flex-col items-center justify-center w-full mt-10">
             <div className="flex flex-col bg-white mx-10 px-32 py-16 w-[80vw] lg:w-auto rounded-lg justify-center items-center ">
-                <h1 className="righteous text-5xl text-center w-[70vw] lg:w-full">Rematch</h1>
+                <h1 className="caveatBrush text-3xl text-center w-[70vw] lg:w-full">ReMatch</h1>
                 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-8 w-[70vw] lg:w-full">
                     <input
-                        id="username"
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         placeholder="Username"
                         required
-                        className="w-full rounded-lg p-2"
+                        className="w-full p-2 border-gray-200 border-b-1 focus:outline-none"
                     />
                     <input
-                        id="email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="Email Address"
                         required
-                        className="w-full rounded-lg p-2"
+                        className="w-full p-2 border-gray-200 border-b-1 focus:outline-none"
                     />
                     <input
-                        id="password"
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="Phone Number"
+                        required
+                        className="w-full p-2 border-gray-200 border-b-1 focus:outline-none"
+                    />
+                    <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Password"
                         required
-                        className="w-full rounded-lg p-2"
+                        className="w-full p-2 border-gray-200 border-b-1 focus:outline-none"
                     />
                     <input
-                        id="confirm-password"
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Confirm Password"
                         required
-                        className="w-full rounded-lg p-2"
+                        className="w-full p-2 border-gray-200 border-b-1 focus:outline-none"
                     />
 
                     {error && <p className="text-red-500">{error}</p>}
                     {success && <p className="text-green-500">{success}</p>}
 
                     <GreenButton type="submit" disabled={loading}>
-                        {loading ? "Registering..." : "Register"}
+                        {loading ? "Registering..." : "Sign Up"}
                     </GreenButton>
                 </form>
-
-                <div className="flex flex-row text-sm mt-2 w-[70vw] lg:w-full text-center items-center justify-center">
-                    <p>Have an account already?&nbsp;</p>
-                    <Link href="/auth/login">
-                        <button type="button" className="text-sm text-blue-600 hover:text-blue-800">
-                            Login
-                        </button>
-                    </Link>
-                </div>
             </div>
         </div>
     );
