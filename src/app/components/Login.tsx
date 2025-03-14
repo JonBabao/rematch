@@ -5,6 +5,7 @@ import { createClient } from '../../../utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import RedButton from '../styles/redButton';
 import Link from "next/link";
+import { User } from '../../models/User'
 
 const Login: React.FC = () => {
     const supabase = createClient();
@@ -19,53 +20,85 @@ const Login: React.FC = () => {
         e.preventDefault();
         setError("");
         setLoading(true);
-
+    
         if (!identifier || !password) {
             setError("Please enter your email and password.");
             setLoading(false);
             return;
         }
-
+    
+        // Authenticate with Supabase
         const { data, error } = await supabase.auth.signInWithPassword({
-            email: identifier, 
+            email: identifier, // Change this if you want to allow phone numbers
             password: password,
         });
-
-        if (error) {
-            setError("Invalid credentials. Please try again.");
+    
+        if (error || !data || !data.user) {
+            setError(error?.message || "Invalid credentials. Please try again.");
             setLoading(false);
             return;
         }
-
+    
         const user = data.user;
-        if (!user) {
-            setError("Authentication failed.");
-            setLoading(false);
-            return;
-        }
-
+    
+        // Fetch user profile
         const { data: existingProfile, error: profileError } = await supabase
             .from("profiles")
-            .select("id")
+            .select("id, username, email, phone")
             .eq("id", user.id)
             .single();
-
+    
+    
+        let profile = existingProfile;
+    
         if (!existingProfile) {
             const { error: insertError } = await supabase
                 .from("profiles")
-                .insert([{ id: user.id, username: user.user_metadata.username, email: user.email }]);
-
+                .insert([{ id: user.id, username: user.user_metadata.username, phone: user.user_metadata.phone, email: user.email }]);
+    
             if (insertError) {
                 console.error("Profile insertion error:", insertError);
                 setError("Failed to insert profile.");
                 setLoading(false);
                 return;
             }
+    
+            // Fetch the newly inserted profile
+            const { data: newProfile, error: newProfileError } = await supabase
+                .from("profiles")
+                .select("id, username, email, phone")
+                .eq("id", user.id)
+                .single();
+    
+            if (newProfileError) {
+                console.error("Error fetching new profile:", newProfileError);
+                setError("Failed to fetch user profile.");
+                setLoading(false);
+                return;
+            }
+    
+            profile = newProfile;
         }
-
+    
+        // Ensure User class exists before instantiating
+        if (profile) {
+            const userInstance = new User(
+                profile.id,
+                profile.username,
+                profile.email,
+                profile.phone || "" // Default to an empty string if phone is null
+            );
+    
+            console.log("Logged in as:", userInstance.getName());
+        }
+    
+        setLoading(false);
         router.push("/dashboard/home");
     };
-
+    
+    
+    
+    
     const handleForgotPassword = async () => {
         if (!identifier) {
             alert("Enter your email to reset your password.");
@@ -83,7 +116,7 @@ const Login: React.FC = () => {
     return(
         <div className="flex flex-col items-center justify-center w-full mt-10">
             <div className = "flex flex-col bg-white mx-10 py-24 px-32 w-auto rounded-lg justify-center items-center shadow-xl">
-                <p className = "text-gray-800 text-3xl">
+                <p className = "caveatBrush text-gray-800 text-3xl">
                     ReMatch
                 </p>
 
@@ -95,7 +128,7 @@ const Login: React.FC = () => {
                         onChange={(e) => setIdentifier(e.target.value)}
                         placeholder="Email"
                         required
-                        className="w-full rounded-lg p-2"
+                        className="w-full p-2 border-gray-200 border-b-1 focus:outline-none"
                     />
                     <input
                         id="password"
@@ -104,7 +137,7 @@ const Login: React.FC = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Password"
                         required
-                        className="w-full rounded-lg p-2"
+                        className="w-full p-2 border-gray-200 border-b-1 focus:outline-none"
                     />
                     <button
                         type="button"
