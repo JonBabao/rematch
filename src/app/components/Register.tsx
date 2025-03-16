@@ -115,6 +115,15 @@ const Register: React.FC = () => {
                         {loading ? "Registering..." : "Sign Up"}
                     </GreenButton>
                 </form>
+
+                <div className="flex flex-row text-sm mt-2 w-[70vw] lg:w-full text-center items-center justify-center">
+                    <p>Have an account already?&nbsp;</p>
+                    <Link href="/auth/login">
+                        <button type="button" className="text-sm text-blue-600 hover:text-blue-800">
+                            Login
+                        </button>
+                    </Link>
+                </div>
             </div>
         </div>
     );
