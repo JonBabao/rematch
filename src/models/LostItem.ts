@@ -1,13 +1,13 @@
 export class LostItem {
     private lostItemId: number;
-    private userId: number;
+    private userId: string;
     private category: string;
     private description: string;
     private dateLost: string;
     private imageUrl: string;
     private status: string;
     
-    constructor(lostItemId: number, userId: number, category: string, description: string, 
+    constructor(lostItemId: number, userId: string, category: string, description: string, 
                 dateLost: string, imageUrl: string) {
         this.lostItemId = lostItemId;
         this.userId = userId;
@@ -21,8 +21,8 @@ export class LostItem {
     getLostItemId(): number { return this.lostItemId; }
     setLostItemId(lostItemId: number): void { this.lostItemId = lostItemId; }
     
-    getUserId(): number { return this.userId; }
-    setUserId(userId: number): void { this.userId = userId; }
+    getUserId(): string { return this.userId; }
+    setUserId(userId: string): void { this.userId = userId; }
     
     getCategory(): string { return this.category; }
     setCategory(category: string): void { this.category = category; }
