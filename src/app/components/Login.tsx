@@ -27,9 +27,8 @@ const Login: React.FC = () => {
             return;
         }
     
-        // Authenticate with Supabase
         const { data, error } = await supabase.auth.signInWithPassword({
-            email: identifier, // Change this if you want to allow phone numbers
+            email: identifier, 
             password: password,
         });
     
@@ -41,7 +40,6 @@ const Login: React.FC = () => {
     
         const user = data.user;
     
-        // Fetch user profile
         const { data: existingProfile, error: profileError } = await supabase
             .from("profiles")
             .select("id, username, email, phone")
@@ -63,7 +61,6 @@ const Login: React.FC = () => {
                 return;
             }
     
-            // Fetch the newly inserted profile
             const { data: newProfile, error: newProfileError } = await supabase
                 .from("profiles")
                 .select("id, username, email, phone")
@@ -80,13 +77,12 @@ const Login: React.FC = () => {
             profile = newProfile;
         }
     
-        // Ensure User class exists before instantiating
         if (profile) {
             const userInstance = new User(
                 profile.id,
                 profile.username,
                 profile.email,
-                profile.phone || "" // Default to an empty string if phone is null
+                profile.phone || "" 
             );
     
             console.log("Logged in as:", userInstance.getName());
@@ -95,9 +91,6 @@ const Login: React.FC = () => {
         setLoading(false);
         router.push("/dashboard/home");
     };
-    
-    
-    
     
     const handleForgotPassword = async () => {
         if (!identifier) {
