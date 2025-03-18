@@ -1,10 +1,10 @@
-import CreatePost from '../../components/CreatePost';
+import ReportPost from '../../components/PostReport';
 import MainLayout from '../../components/layouts/MainLayout'
 
 export default function HomePage() {
     return(
         <MainLayout>
-            <CreatePost />
+            <ReportPost />
         </MainLayout>
     );
 }
