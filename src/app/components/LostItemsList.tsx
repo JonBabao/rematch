@@ -23,25 +23,29 @@ const LostItemsList = () => {
 
     return (
         <div>
-            <h2>Lost Items</h2>
+            <h2 className="font-bold text-3xl caveatBrush mb-4 text-center lg:text-left">Lost Items</h2>
             {lostItems.length === 0 ? (
                 <p>No lost items found.</p>
             ) : (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                    {lostItems.map((item) => (
-                        <div key={item.id} style={{ border: "1px solid #ccc", padding: "10px", width: "250px" }}>
-                            <h3>{item.category}</h3>
-                            <p>{item.description}</p>
-                            <p><strong>Status:</strong> {item.status}</p>
-                            <p><strong>Date Lost:</strong> {item.date_lost}</p>
-                            {item.image_url ? (
-                                <img src={item.image_url} alt="Lost Item" style={{ width: "100%", height: "auto" }} />
-                            ) : (
-                                <p>No Image Available</p>
-                            )}
-                        </div>
-                    ))}
-                </div>
+                    <div className="flex flex-grow flex-wrap gap-8 w-full">
+                        {lostItems.map((item) => (
+                            <div 
+                                key={item.id} 
+                                className="break-words w-full lg:w-64 border-gray-200 border-2 p-4 rounded-lg"
+                            >
+                                <h3 className="text-xl font-bold">{item.title}</h3>
+                                <h3><strong>Category:</strong> {item.category}</h3>
+                                <p><strong>Description:</strong> {item.description}</p>
+                                <p><strong>Status:</strong> {item.status}</p>
+                                <p><strong>Date Lost:</strong> {item.date_lost}</p>
+                                {item.image_url ? (
+                                    <img src={item.image_url} alt="Lost Item" className="w-auto mt-8" />
+                                ) : (
+                                    <p>No Image Available</p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
             )}
         </div>
     );
