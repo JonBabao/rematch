@@ -59,10 +59,10 @@ const TopNav: React.FC = () => {
 
                 <div className="flex gap-10 mr-10 font-semibold text-base">
                     {user ? (
-                        <>  <Link href="/dashboard/createPost">
+                        <>  <Link href="/dashboard/reportPost">
                                 <button className="flex justify-center items-center p-2 gap-2 hover:underline">
                                     <FiPlus size={25} />
-                                    Create
+                                    Report Missing Item
                                 </button>
                             </Link>
                             <Link href="/auth/login">
@@ -83,7 +83,7 @@ const TopNav: React.FC = () => {
                                 </button>
                             </Link>
                             <Link href="/auth/register">
-                                <button className="p-2 px-3 rounded-lg bg-gray-200 text-[#292929] hover:bg-gray-100">
+                                <button className="bg-[#34ce46] p-2.5 px-3 rounded-lg text-[#292929] hover:bg-green-500">
                                     Register
                                 </button>
                             </Link>
