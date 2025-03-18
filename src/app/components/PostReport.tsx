@@ -6,11 +6,13 @@ import { useRouter } from "next/navigation";
 import { LostItem } from "../../models/LostItem";
 import { v4 as uuidv4 } from "uuid"; 
 import GreenButton from "../styles/greenButton";
+import { title } from "process";
 
-const CreatePost: React.FC = () => {
+const ReportPost: React.FC = () => {
     const supabase = createClient();
     const router = useRouter();
 
+    const [title, setTitle] = useState("");
     const [category, setCategory] = useState("");
     const [description, setDescription] = useState("");
     const [dateLost, setDateLost] = useState("");
@@ -58,11 +60,12 @@ const CreatePost: React.FC = () => {
             imageUrl = data.publicUrl;
         }
 
-        const lostItem = new LostItem(0, userId, category, description, dateLost, imageUrl);
+        const lostItem = new LostItem(0, userId, title, category, description, dateLost, imageUrl);
 
         const { error: insertError } = await supabase.from("lostItem").insert([
             {
                 user_id: lostItem.getUserId(),
+                title: lostItem.getTitle(),
                 category: lostItem.getCategory(),
                 description: lostItem.getDescription(),
                 date_lost: lostItem.getDateLost(),
@@ -88,6 +91,15 @@ const CreatePost: React.FC = () => {
                 <h2 className="text-2xl font-bold text-gray-800 mb-4">Create Lost Item Post</h2>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    <input
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Title"
+                        required
+                        className="p-2 border border-gray-300 rounded"
+                    />
+                    
                     <input
                         type="text"
                         value={category}
@@ -132,4 +144,4 @@ const CreatePost: React.FC = () => {
     );
 };
 
-export default CreatePost;
+export default ReportPost;
