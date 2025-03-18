@@ -5,6 +5,7 @@ import { createClient } from "../../../utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { LostItem } from "../../models/LostItem";
 import { v4 as uuidv4 } from "uuid"; 
+import GreenButton from "../styles/greenButton";
 
 const CreatePost: React.FC = () => {
     const supabase = createClient();
@@ -82,8 +83,8 @@ const CreatePost: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center w-full mt-10">
-            <div className="flex flex-col bg-white mx-10 py-10 px-10 w-auto rounded-lg shadow-xl">
+        <div className="flex flex-col items-center justify-center w-full mt-32 px-10">
+            <div className="flex flex-col bg-white px-10 py-10 w-full rounded-lg shadow-xl">
                 <h2 className="text-2xl font-bold text-gray-800 mb-4">Create Lost Item Post</h2>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -103,14 +104,17 @@ const CreatePost: React.FC = () => {
                         required
                         className="p-2 border border-gray-300 rounded"
                     />
-
-                    <input
-                        type="date"
-                        value={dateLost}
-                        onChange={(e) => setDateLost(e.target.value)}
-                        required
-                        className="p-2 border border-gray-300 rounded"
-                    />
+        
+                    <div className="flex flex-row items-center w-full">
+                        <label className="block text-gray-700 font-semibold pr-4">Date Lost:</label>
+                            <input
+                            type="date"
+                            value={dateLost}
+                            onChange={(e) => setDateLost(e.target.value)}
+                            required
+                            className="p-2 border border-gray-300 rounded flex-1"
+                        />
+                    </div>
 
                     <input
                         type="file"
@@ -121,13 +125,7 @@ const CreatePost: React.FC = () => {
 
                     {error && <p className="text-red-500">{error}</p>}
 
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
-                    >
-                        {loading ? "Uploading..." : "Submit"}
-                    </button>
+                    <GreenButton type="submit">Submit</GreenButton>
                 </form>
             </div>
         </div>
