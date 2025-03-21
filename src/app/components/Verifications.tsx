@@ -28,11 +28,14 @@ const AdminVerifications = () => {
         fetchVerifications();
     }, []);
 
-    const handleApproval = async (id: string, status: "approved" | "rejected") => {
-        const { error } = await supabase
+    const handleApproval = async (id: bigint, status: "approved" | "rejected") => {
+        console.log(`Attempting to update ID: ${id} to status: ${status}`);
+        const { data, error } = await supabase
             .from("verificationUploads")
             .update({ status })
             .eq("id", id);
+
+        console.log(data, error)
 
         if (error) {
             console.error("Error updating verification:", error.message);
@@ -41,6 +44,7 @@ const AdminVerifications = () => {
             setVerifications(verifications.map(v => (v.id === id ? { ...v, status } : v)));
             alert(`Verification ${status}`);
         }
+      
     };
 
     if (loading) return <p>Loading verifications...</p>;
