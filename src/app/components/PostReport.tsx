@@ -3,10 +3,9 @@
 import React, { useState } from "react";
 import { createClient } from "../../../utils/supabase/client";
 import { useRouter } from "next/navigation";
-import { LostItem } from "../../models/LostItem";
+import { Owner } from "../../models/Owner";
 import { v4 as uuidv4 } from "uuid"; 
 import GreenButton from "../styles/greenButton";
-import { title } from "process";
 
 const ReportPost: React.FC = () => {
     const supabase = createClient();
@@ -30,61 +29,60 @@ const ReportPost: React.FC = () => {
         e.preventDefault();
         setError("");
         setLoading(true);
-
+    
         const { data: userData, error: userError } = await supabase.auth.getUser();
         if (userError || !userData.user) {
             setError("Failed to get user. Please log in.");
             setLoading(false);
             return;
         }
+    
+        const userId = userData.user.id; 
+        if (!userId) {
+            setError("User ID not found.");
+            setLoading(false);
+            return;
+        }
 
-        const userId = userData.user.id;
+        const owner = await Owner.getOwnerById(userId);
+        if (!owner) {
+            setError("Failed to fetch user profile. Please try again.");
+            setLoading(false);
+            return;
+        }
+    
         let imageUrl = "";
-
+    
         if (imageFile) {
             const fileExt = imageFile.name.split(".").pop();
             const filePath = `lost-items-images/${uuidv4()}.${fileExt}`;
-
+    
             const { data: uploadData, error: uploadError } = await supabase.storage
                 .from("lost-items-images") 
                 .upload(filePath, imageFile);
-
+    
             if (uploadError) {
                 setError("Image upload failed. Please try again.");
                 console.error("Upload error:", uploadError);
                 setLoading(false);
                 return;
             }
-
+    
             const { data } = supabase.storage.from("lost-items-images").getPublicUrl(filePath);
             imageUrl = data.publicUrl;
         }
-
-        const lostItem = new LostItem(0, userId, title, category, description, dateLost, imageUrl);
-
-        const { error: insertError } = await supabase.from("lostItem").insert([
-            {
-                user_id: lostItem.getUserId(),
-                title: lostItem.getTitle(),
-                category: lostItem.getCategory(),
-                description: lostItem.getDescription(),
-                date_lost: lostItem.getDateLost(),
-                image_url: lostItem.getImageUrl(),
-                status: false,
-            },
-        ]);
-
-        if (insertError) {
+    
+        const lostItemId = await owner.reportLostItem(category, description, dateLost, imageUrl);
+        if (!lostItemId) {
             setError("Failed to create post. Please try again.");
-            console.error("Insert error:", insertError);
             setLoading(false);
             return;
         }
-
+    
         setLoading(false);
         router.push("/dashboard/home"); 
     };
-
+    
     return (
         <div className="flex flex-col items-center justify-center w-full mt-32 px-10">
             <div className="flex flex-col bg-white px-10 py-10 w-full rounded-lg shadow-xl">
@@ -119,7 +117,7 @@ const ReportPost: React.FC = () => {
         
                     <div className="flex flex-row items-center w-full">
                         <label className="block text-gray-700 font-semibold pr-4">Date Lost:</label>
-                            <input
+                        <input
                             type="date"
                             value={dateLost}
                             onChange={(e) => setDateLost(e.target.value)}
@@ -137,7 +135,9 @@ const ReportPost: React.FC = () => {
 
                     {error && <p className="text-red-500">{error}</p>}
 
-                    <GreenButton type="submit">Submit</GreenButton>
+                    <GreenButton type="submit" disabled={loading}>
+                        {loading ? "Submitting..." : "Submit"}
+                    </GreenButton>
                 </form>
             </div>
         </div>
