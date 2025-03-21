@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "../../../utils/supabase/client"; 
 import { useRouter } from "next/navigation";
+import { timeAgo } from "../../../utils/TimeAgo";
 
 const LostItemsList = () => {
     const [lostItems, setLostItems] = useState<any[]>([]);
@@ -34,8 +35,9 @@ const LostItemsList = () => {
                         <button 
                             key={item.id} 
                             onClick={() => router.push(`/dashboard/viewPost/${item.id}`)} 
-                            className="break-words w-full lg:w-64 border-gray-200 border-2 p-4 rounded-lg"
+                            className="break-words w-full lg:w-64 border-gray-200 border-2 p-4 rounded-lg text-start"
                         >
+                            <p>Posted {timeAgo(item.created_at)}</p>
                             <h3 className="text-xl font-bold">{item.title}</h3>
                             <h3><strong>Category:</strong> {item.category}</h3>
                             <p><strong>Description:</strong> {item.description}</p>
