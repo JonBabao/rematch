@@ -1,23 +1,65 @@
-import { User } from './User';
+import { User } from "./User";
+import { createClient } from "../../utils/supabase/client"; 
 
 export class Owner extends User {
-    constructor(userId: number, name: string, email: string, phone: string, password: string) {
-        super(userId, name, email, phone, password);
+    private supabase = createClient(); 
+
+    constructor(userId: string, name: string, email: string, phone: string) {
+        super(userId, name, email, phone);
     }
-    
-    reportLostItem(category: string, description: string, dateLost: string, imageUrl: string): number {
+
+    static async getOwnerById(userId: string): Promise<Owner | null> {
+        const supabase = createClient();
+        const { data, error } = await supabase
+            .from("profiles")
+            .select("id, username, email, phone")
+            .eq("id", userId)
+            .single();
+
+        if (error || !data) {
+            console.error("Error fetching owner details:", error);
+            return null;
+        }
+
+        return new Owner(data.id, data.username, data.email, data.phone);
+    }
+
+    async reportLostItem(category: string, description: string, dateLost: string, imageUrl: string): Promise<number | null> {
         console.log(`Lost item reported by ${this.getName()}`);
-        // Implementation would create a Lost_Item entry and return its ID
-        return this.generateLostItemId(); // Placeholder
+
+        const { data, error } = await this.supabase.from("lostItem").insert([
+            {
+                owner_id: this.getUserId(), 
+                title: category,
+                category: category,
+                description: description,
+                date_lost: dateLost,
+                image_url: imageUrl,
+                status: false, 
+            },
+        ]).select("id").single();
+
+        if (error) {
+            console.error("Error reporting lost item:", error);
+            return null;
+        }
+
+        return data?.id || null;
     }
-    
-    declareItemAsFound(lostItemId: number): void {
+
+    async declareItemAsFound(lostItemId: number): Promise<boolean> {
         console.log(`Item ${lostItemId} declared as found by ${this.getName()}`);
-        // Implementation would update the Lost_Item status
-    }
-    
-    // Helper method to generate a lost item ID (placeholder)
-    private generateLostItemId(): number {
-        return Math.floor(Math.random() * 10000);
+
+        const { error } = await this.supabase.from("lostItem").update({
+            status: true, 
+
+        }).match({ id: lostItemId, owner_id: this.getUserId() });
+
+        if (error) {
+            console.error("Error declaring item as found:", error);
+            return false;
+        }
+
+        return true;
     }
 }
