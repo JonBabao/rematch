@@ -1,6 +1,6 @@
 export class LostItem {
     private lostItemId: number;
-    private userId: string;
+    private ownerId: string;
     private title: string;
     private category: string;
     private description: string;
@@ -8,23 +8,23 @@ export class LostItem {
     private imageUrl: string;
     private status: string;
     
-    constructor(lostItemId: number, userId: string, title: string, category: string, description: string, 
+    constructor(lostItemId: number, ownerId: string, title: string, category: string, description: string, 
                 dateLost: string, imageUrl: string) {
         this.lostItemId = lostItemId;
-        this.userId = userId;
+        this.ownerId = ownerId;
         this.title = title;
         this.category = category;
         this.description = description;
         this.dateLost = dateLost;
         this.imageUrl = imageUrl;
-        this.status = "pending"; // default status
+        this.status = "pending"; 
     }
     
     getLostItemId(): number { return this.lostItemId; }
     setLostItemId(lostItemId: number): void { this.lostItemId = lostItemId; }
     
-    getUserId(): string { return this.userId; }
-    setUserId(userId: string): void { this.userId = userId; }
+    getOwnerId(): string { return this.ownerId; }
+    setOwnerId(ownerId: string): void { this.ownerId = ownerId; }
    
     getTitle(): string { return this.title; }
     setTitle(title: string): void { this.title = title; }
