@@ -11,18 +11,32 @@ const LostItemsList = () => {
 
     useEffect(() => {
         const fetchLostItems = async () => {
-            const { data, error } = await supabase.from("lostItem").select("*");
+            const { data, error } = await supabase
+                .from("lostItem")
+                .select("*, adminRequests(status)")
+                .order("created_at", { ascending: false });
     
             if (error) {
                 console.error("Error fetching lost items:", error.message);
-            } else {
-                console.log("Fetched lost items:", data);
-                setLostItems(data);
+                return;
             }
+    
+            console.log("Fetched lost items:", data);
+    
+            const filteredData = data.filter(item => 
+                !item.adminRequests || 
+                (Array.isArray(item.adminRequests) 
+                    ? item.adminRequests.every(req => req.status !== "rejected") 
+                    : item.adminRequests.status !== "rejected")
+            );
+    
+            setLostItems(filteredData);
         };
     
         fetchLostItems();
     }, []);
+    
+    
 
     const filteredItems = lostItems.filter(
         (item) => item.status === false && item.category.toLowerCase().includes(searchQuery.toLowerCase())
