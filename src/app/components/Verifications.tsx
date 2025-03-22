@@ -20,7 +20,23 @@ const AdminVerifications = () => {
                 console.error("Error fetching verifications:", error.message);
                 setError("Failed to load verifications.");
             } else {
-                setVerifications(data);
+                const enrichedData = await Promise.all(
+                    data.map(async (v) => {
+                        const { data: adminRequest, error: adminError } = await supabase
+                            .from("adminRequests")
+                            .select("status")
+                            .eq("lost_item_id", v.lost_item_id)
+                            .maybeSingle(); 
+
+                        if (adminError) {
+                            //console.error(`Error fetching adminRequests for lost_item_id ${v.lost_item_id}:`, adminError.message);
+                        }
+
+                        return { ...v, admin_status: adminRequest?.status || "unknown" };
+                    })
+                );
+
+                setVerifications(enrichedData);
             }
             setLoading(false);
         };
@@ -28,23 +44,40 @@ const AdminVerifications = () => {
         fetchVerifications();
     }, []);
 
-    const handleApproval = async (id: bigint, status: "approved" | "rejected") => {
-        console.log(`Attempting to update ID: ${id} to status: ${status}`);
-        const { data, error } = await supabase
+    const handleApproval = async (id: bigint, lostItemId: bigint, status: "approved" | "rejected") => {
+        console.log(`Attempting to update verification ID: ${id} and adminRequest for lost_item_id: ${lostItemId} to status: ${status}`);
+
+        const { error: verificationError } = await supabase
             .from("verificationUploads")
             .update({ status })
             .eq("id", id);
 
-        console.log(data, error)
-
-        if (error) {
-            console.error("Error updating verification:", error.message);
+        if (verificationError) {
+            console.error("Error updating verification:", verificationError.message);
             alert("Failed to update verification.");
-        } else {
-            setVerifications(verifications.map(v => (v.id === id ? { ...v, status } : v)));
-            alert(`Verification ${status}`);
+            return;
         }
-      
+
+        const { error: adminRequestError } = await supabase
+            .from("adminRequests")
+            .update({ status })
+            .eq("lost_item_id", lostItemId);
+
+        if (adminRequestError) {
+            console.error("Error updating adminRequests:", adminRequestError.message);
+            alert("Failed to update admin request status.");
+            return;
+        }
+
+        setVerifications((prev) =>
+            prev.map((v) =>
+                v.id === id
+                    ? { ...v, status, admin_status: status }
+                    : v
+            )
+        );
+
+        alert(`Verification ${status}`);
     };
 
     if (loading) return <p>Loading verifications...</p>;
@@ -62,20 +95,21 @@ const AdminVerifications = () => {
                         <li key={v.id} className="border p-4 rounded-lg mb-4">
                             <p><strong>Lost Item ID:</strong> {v.lost_item_id}</p>
                             <p><strong>User ID:</strong> {v.user_id}</p>
-                            <p><strong>Status:</strong> {v.status}</p>
+                            <p><strong>Verification Status:</strong> {v.status}</p>
+                            <p><strong>Admin Request Status:</strong> {v.admin_status}</p>
                             {v.image_url && (
                                 <img src={v.image_url} alt="Verification" className="h-40 w-auto mt-2 rounded-lg" />
                             )}
                             {v.status === "pending" && (
                                 <div className="mt-4">
                                     <button
-                                        onClick={() => handleApproval(v.id, "approved")}
+                                        onClick={() => handleApproval(v.id, v.lost_item_id, "approved")}
                                         className="mr-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                                     >
                                         Approve
                                     </button>
                                     <button
-                                        onClick={() => handleApproval(v.id, "rejected")}
+                                        onClick={() => handleApproval(v.id, v.lost_item_id, "rejected")}
                                         className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                                     >
                                         Reject
