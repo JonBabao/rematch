@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "../../../utils/supabase/client";
 import { v4 as uuidv4 } from "uuid";
+import { Admin } from "../../models/Admin";
 
 const ViewPost = () => {
     const [item, setItem] = useState<any>(null);
@@ -15,7 +16,8 @@ const ViewPost = () => {
     const [verificationRequested, setVerificationRequested] = useState(false);
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
-    
+    const [admin, setAdmin] = useState<Admin | null>(null);
+
     const supabase = createClient();
     const { id } = useParams();
     const router = useRouter();
@@ -37,7 +39,6 @@ const ViewPost = () => {
                 setItem(data);
                 setOwner(data.profiles);
 
-                // Fetch user and check ownership
                 const { data: user, error: userError } = await supabase.auth.getUser();
                 if (!userError && user?.user) {
                     setIsOwner(user.user.id === data.owner_id);
@@ -48,18 +49,35 @@ const ViewPost = () => {
 
         const checkIfAdmin = async () => {
             const { data: user, error } = await supabase.auth.getUser();
-            if (error || !user?.user) return;
-
+            if (error || !user?.user) {
+                console.log("No user found or error fetching user:", error);
+                return;
+            }
+        
+            console.log("Logged-in User ID:", user.user.id); // Debug log
+        
             const { data, error: roleError } = await supabase
                 .from("profiles")
-                .select("id")
+                .select("id, username, email, phone")
                 .eq("id", user.user.id)
                 .single();
-
-            if (!roleError && data?.id === "92c92ac3-1d14-41a4-a2ae-e4b9aab5bcdc") {
+        
+            if (roleError) {
+                console.log("Error fetching user profile:", roleError);
+                return;
+            }
+        
+            console.log("User Profile Data:", data); // Debug log
+        
+            if (data?.id === "92c92ac3-1d14-41a4-a2ae-e4b9aab5bcdc") {
+                console.log("User is an Admin!"); // Debug log
                 setIsAdmin(true);
+                setAdmin(new Admin(user.user.id, data.username, data.email, data.phone));
+            } else {
+                console.log("User is NOT an Admin");
             }
         };
+        
 
         const checkVerificationRequest = async () => {
             const { data, error } = await supabase
@@ -78,51 +96,37 @@ const ViewPost = () => {
         checkVerificationRequest();
     }, [id]);
 
-
     const handleRequestVerification = async () => {
-        if (!id || !item) return;
-
-        const { error } = await supabase
-            .from("adminRequests")
-            .insert([
-                {
-                    lost_item_id: id,
-                    user_id: item.owner_id,
-                    request_type: "image_verification",
-                    status: false,
-                },
-            ]);
-
-        if (error) {
-            console.error("Error requesting verification:", error.message);
-            alert("Failed to request verification.");
-        } else {
+        if (!id || Array.isArray(id) || !admin) return;
+        const success = await admin.requestVerification(id);
+        if (success) {
             setVerificationRequested(true);
             alert("Verification request sent.");
+        } else {
+            alert("Failed to request verification.");
         }
     };
-
     const handleFileUpload = async () => {
         if (!file || !id) return;
         setUploading(true);
-    
+
         const fileExt = file.name.split(".").pop();
         const filePath = `verification-files/${uuidv4()}.${fileExt}`;
-    
+
         const { data: uploadData, error: uploadError } = await supabase.storage
-            .from("verification-files") 
+            .from("verification-files")
             .upload(filePath, file);
-    
+
         if (uploadError) {
             console.error("Error uploading file:", uploadError.message);
             alert("Upload failed.");
             setUploading(false);
             return;
         }
-    
+
         const { data } = supabase.storage.from("verification-files").getPublicUrl(filePath);
         const imageUrl = data.publicUrl;
-    
+
         await submitVerification(imageUrl);
         setUploading(false);
     };
@@ -164,24 +168,6 @@ const ViewPost = () => {
                 <p>No Image Available</p>
             )}
 
-            {owner && (
-                <div className="mt-6 p-4 bg-gray-100 rounded-lg">
-                    <h2 className="text-xl font-bold mb-2">Owner Details</h2>
-                    <p><strong>Username:</strong> {owner.username}</p>
-                    <p><strong>Phone:</strong> {owner.phone}</p>
-                    <p><strong>Email:</strong> {owner.email}</p>
-                </div>
-            )}
-
-            {isAdmin && !verificationRequested && (
-                <button
-                    onClick={handleRequestVerification}
-                    className="mt-6 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                >
-                    Request Verification
-                </button>
-            )}
-
             {isOwner && verificationRequested && (
                 <div className="mt-6 p-4 bg-yellow-100 rounded-lg">
                     <h2 className="text-xl font-bold">Admin Verification Required</h2>
@@ -202,12 +188,18 @@ const ViewPost = () => {
                         {uploading ? "Uploading..." : "Upload Verification"}
                     </button>
                 </div>
+            )}      
+
+            {isAdmin && (
+                <button
+                    onClick={handleRequestVerification}
+                    className="mt-6 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                >
+                    Request Verification
+                </button>
             )}
 
-            <button
-                onClick={() => router.back()}
-                className="mt-6 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-            >
+            <button onClick={() => router.back()} className="mt-6 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
                 Go Back
             </button>
         </div>
