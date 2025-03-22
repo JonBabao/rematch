@@ -9,6 +9,7 @@ import { Admin } from "../../models/Admin";
 const ViewPost = () => {
     const [item, setItem] = useState<any>(null);
     const [owner, setOwner] = useState<any>(null);
+    const [verificationStatus, setVerificationStatus] = useState(null);
     const [ownerData, setOwnerData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -37,7 +38,7 @@ const ViewPost = () => {
                 if (error) throw error;
 
                 setItem(data);
-                setOwner(data.profiles || null); // Ensures owner information is properly set
+                setOwner(data.profiles || null); 
 
                 const { data: user, error: userError } = await supabase.auth.getUser();
                 if (userError) throw userError;
@@ -94,9 +95,22 @@ const ViewPost = () => {
                 setLoading(false); 
             }
         };
+         
+        const fetchVerificationStatus = async () => {
+            if (!id) return;
         
+            const { data, error } = await supabase
+                .from("adminRequests")
+                .select("status")
+                .eq("lost_item_id", id)
+                .maybeSingle(); 
         
-        
+            if (error) {
+                console.error("Error fetching verification status:", error.message);
+            } else {
+                setVerificationStatus(data?.status || "no verification found");
+            }
+        };
 
         const checkIfAdmin = async () => {
             try {
@@ -138,6 +152,7 @@ const ViewPost = () => {
         fetchOwnerDetails();
         checkIfAdmin();
         checkVerificationRequest();
+        fetchVerificationStatus();
     }, [id]);
 
     const handleRequestVerification = async () => {
@@ -206,9 +221,9 @@ const ViewPost = () => {
         <div className="flex flex-col mt-32 mx-10 bg-white p-16 rounded-lg">
             <h1 className="text-3xl font-bold mb-4">{item.title}</h1>
             
-            {verificationRequested && (
+            {verificationStatus === "pending" && (
                 <div className="my-4 p-4 bg-yellow-100 rounded-lg">
-                    <p>Admins are currently requesting additional proof of ownership.</p>
+                    <p>Note: Admins are currently requesting additional proof of ownership.</p>
                 </div>
             )}
 
