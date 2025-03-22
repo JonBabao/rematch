@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { createClient } from "../../../utils/supabase/client";
 import { v4 as uuidv4 } from "uuid";
 import { Admin } from "../../models/Admin";
+import { Owner } from "../../models/Owner"; 
 
 const ViewPost = () => {
     const [item, setItem] = useState<any>(null);
@@ -19,6 +20,7 @@ const ViewPost = () => {
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
     const [admin, setAdmin] = useState<Admin | null>(null);
+    const [isDeclaredFound, setIsDeclaredFound] = useState(false); 
 
     const supabase = createClient();
     const { id } = useParams();
@@ -38,7 +40,8 @@ const ViewPost = () => {
                 if (error) throw error;
 
                 setItem(data);
-                setOwner(data.profiles || null); 
+                setOwner(data.profiles || null);
+                setIsDeclaredFound(data.status); 
 
                 const { data: user, error: userError } = await supabase.auth.getUser();
                 if (userError) throw userError;
@@ -56,55 +59,55 @@ const ViewPost = () => {
 
         const fetchOwnerDetails = async () => {
             if (!id) return;
-        
-            setLoading(true); 
-        
+
+            setLoading(true);
+
             try {
                 const { data: itemData, error: itemError } = await supabase
                     .from("lostItem")
                     .select("owner_id")
                     .eq("id", id)
                     .single();
-        
+
                 if (itemError || !itemData) {
                     throw new Error(itemError?.message || "Lost item not found");
                 }
-        
+
                 const ownerId = itemData.owner_id;
                 const { data: ownerData, error: ownerError } = await supabase
                     .from("profiles")
                     .select("id, username, email, phone")
                     .eq("id", ownerId)
                     .maybeSingle();
-        
+
                 console.log("🔍 Owner data result:", ownerData);
-        
+
                 if (ownerError) {
                     throw new Error(ownerError.message);
                 }
-        
+
                 if (!ownerData) {
                     throw new Error(`Owner profile not found for owner_id: ${ownerId}`);
                 }
-        
+
                 setOwnerData(ownerData);
             } catch (error) {
                 console.error("🚨 Error fetching owner details:", error.message);
                 setError(error.message);
             } finally {
-                setLoading(false); 
+                setLoading(false);
             }
         };
-         
+
         const fetchVerificationStatus = async () => {
             if (!id) return;
-        
+
             const { data, error } = await supabase
                 .from("adminRequests")
                 .select("status")
                 .eq("lost_item_id", id)
-                .maybeSingle(); 
-        
+                .maybeSingle();
+
             if (error) {
                 console.error("Error fetching verification status:", error.message);
             } else {
@@ -213,6 +216,25 @@ const ViewPost = () => {
         }
     };
 
+    const handleDeclareAsFound = async () => {
+        if (!id || Array.isArray(id) || !isOwner) return;
+
+        const ownerInstance = new Owner(
+            ownerData.id,
+            ownerData.username,
+            ownerData.email,
+            ownerData.phone
+        );
+        console.log("Owner id:", ownerData.id);
+        const success = await ownerInstance.declareItemAsFound(Number(id));
+        if (success) {
+            setIsDeclaredFound(true);
+            alert("Item has been declared as found!");
+        } else {
+            alert("Failed to declare item as found.");
+        }
+    };
+
     if (loading) return <p>Loading...</p>;
     if (error) return <p className="text-red-500">{error}</p>;
     if (!item) return <p>Item not found.</p>;
@@ -220,7 +242,7 @@ const ViewPost = () => {
     return (
         <div className="flex flex-col mt-32 mx-10 bg-white p-16 rounded-lg">
             <h1 className="text-3xl font-bold mb-4">{item.title}</h1>
-            
+
             {verificationStatus === "pending" && (
                 <div className="my-4 p-4 bg-yellow-100 rounded-lg">
                     <p>Note: Admins are currently requesting additional proof of ownership.</p>
@@ -239,6 +261,7 @@ const ViewPost = () => {
                     <p><b>Category:</b> {item.category}</p>
                     <p><b>Description:</b> {item.description}</p>
                     <p><b>Date Lost:</b> {item.date_lost}</p>
+                    <p><b>Status:</b> {isDeclaredFound ? "Found" : "Not Found"}</p> {/* Display found status */}
                 </div>
 
                 <div className="p-8 bg-red-100 flex flex-col flex-grow">
@@ -254,6 +277,15 @@ const ViewPost = () => {
                     )}
                 </div>
             </div>
+
+            {isOwner && !isDeclaredFound && ( 
+                <button
+                    onClick={handleDeclareAsFound}
+                    className="mt-6 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                >
+                    Declare Item as Found
+                </button>
+            )}
 
             {isOwner && verificationRequested && (
                 <div className="mt-6 p-4 bg-yellow-100 rounded-lg">
