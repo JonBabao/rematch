@@ -9,6 +9,7 @@ import { Admin } from "../../models/Admin";
 const ViewPost = () => {
     const [item, setItem] = useState<any>(null);
     const [owner, setOwner] = useState<any>(null);
+    const [ownerData, setOwnerData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [isAdmin, setIsAdmin] = useState(false);
@@ -23,75 +24,118 @@ const ViewPost = () => {
     const router = useRouter();
 
     useEffect(() => {
+        if (!id) return;
+
         const fetchItemDetails = async () => {
-            if (!id) return;
+            try {
+                const { data, error } = await supabase
+                    .from("lostItem")
+                    .select("*, profiles:owner_id(id, username, email, phone)")
+                    .eq("id", id)
+                    .single();
 
-            const { data, error } = await supabase
-                .from("lostItem")
-                .select("*, profiles(username, phone, email)")
-                .eq("id", id)
-                .single();
+                if (error) throw error;
 
-            if (error) {
-                console.error("Error fetching lost item details:", error.message);
-                setError("Failed to fetch item details.");
-            } else {
                 setItem(data);
-                setOwner(data.profiles);
+                setOwner(data.profiles || null); // Ensures owner information is properly set
 
                 const { data: user, error: userError } = await supabase.auth.getUser();
-                if (!userError && user?.user) {
+                if (userError) throw userError;
+
+                if (user?.user) {
                     setIsOwner(user.user.id === data.owner_id);
                 }
+            } catch (err: any) {
+                console.error("Error fetching lost item details:", err.message);
+                setError("Failed to fetch item details.");
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
+
+        const fetchOwnerDetails = async () => {
+            if (!id) return;
+        
+            setLoading(true); 
+        
+            try {
+                const { data: itemData, error: itemError } = await supabase
+                    .from("lostItem")
+                    .select("owner_id")
+                    .eq("id", id)
+                    .single();
+        
+                if (itemError || !itemData) {
+                    throw new Error(itemError?.message || "Lost item not found");
+                }
+        
+                const ownerId = itemData.owner_id;
+                const { data: ownerData, error: ownerError } = await supabase
+                    .from("profiles")
+                    .select("id, username, email, phone")
+                    .eq("id", ownerId)
+                    .maybeSingle();
+        
+                console.log("🔍 Owner data result:", ownerData);
+        
+                if (ownerError) {
+                    throw new Error(ownerError.message);
+                }
+        
+                if (!ownerData) {
+                    throw new Error(`Owner profile not found for owner_id: ${ownerId}`);
+                }
+        
+                setOwnerData(ownerData);
+            } catch (error) {
+                console.error("🚨 Error fetching owner details:", error.message);
+                setError(error.message);
+            } finally {
+                setLoading(false); 
+            }
+        };
+        
+        
+        
 
         const checkIfAdmin = async () => {
-            const { data: user, error } = await supabase.auth.getUser();
-            if (error || !user?.user) {
-                console.log("No user found or error fetching user:", error);
-                return;
-            }
-        
-            console.log("Logged-in User ID:", user.user.id); // Debug log
-        
-            const { data, error: roleError } = await supabase
-                .from("profiles")
-                .select("id, username, email, phone")
-                .eq("id", user.user.id)
-                .single();
-        
-            if (roleError) {
-                console.log("Error fetching user profile:", roleError);
-                return;
-            }
-        
-            console.log("User Profile Data:", data); // Debug log
-        
-            if (data?.id === "92c92ac3-1d14-41a4-a2ae-e4b9aab5bcdc") {
-                console.log("User is an Admin!"); // Debug log
-                setIsAdmin(true);
-                setAdmin(new Admin(user.user.id, data.username, data.email, data.phone));
-            } else {
-                console.log("User is NOT an Admin");
+            try {
+                const { data: user, error } = await supabase.auth.getUser();
+                if (error || !user?.user) return;
+
+                const { data, error: roleError } = await supabase
+                    .from("profiles")
+                    .select("id, username, email, phone")
+                    .eq("id", user.user.id)
+                    .single();
+
+                if (roleError) return;
+
+                if (data?.id === "92c92ac3-1d14-41a4-a2ae-e4b9aab5bcdc") {
+                    setIsAdmin(true);
+                    setAdmin(new Admin(user.user.id, data.username, data.email, data.phone));
+                }
+            } catch (err: any) {
+                console.error("Error checking admin status:", err.message);
             }
         };
-        
 
         const checkVerificationRequest = async () => {
-            const { data, error } = await supabase
-                .from("adminRequests")
-                .select("status")
-                .eq("lost_item_id", id)
-                .single();
+            try {
+                const { data, error } = await supabase
+                    .from("adminRequests")
+                    .select("status")
+                    .eq("lost_item_id", id)
+                    .single();
 
-            if (!error && data) {
-                setVerificationRequested(true);
+                if (!error && data) setVerificationRequested(true);
+            } catch (err: any) {
+                console.error("Error checking verification request:", err.message);
             }
         };
 
         fetchItemDetails();
+        fetchOwnerDetails();
         checkIfAdmin();
         checkVerificationRequest();
     }, [id]);
@@ -106,48 +150,51 @@ const ViewPost = () => {
             alert("Failed to request verification.");
         }
     };
+
     const handleFileUpload = async () => {
         if (!file || !id) return;
         setUploading(true);
 
-        const fileExt = file.name.split(".").pop();
-        const filePath = `verification-files/${uuidv4()}.${fileExt}`;
+        try {
+            const fileExt = file.name.split(".").pop();
+            const filePath = `verification-files/${uuidv4()}.${fileExt}`;
 
-        const { data: uploadData, error: uploadError } = await supabase.storage
-            .from("verification-files")
-            .upload(filePath, file);
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from("verification-files")
+                .upload(filePath, file);
 
-        if (uploadError) {
-            console.error("Error uploading file:", uploadError.message);
+            if (uploadError) throw uploadError;
+
+            const { data } = supabase.storage.from("verification-files").getPublicUrl(filePath);
+            const imageUrl = data.publicUrl;
+
+            await submitVerification(imageUrl);
+        } catch (err: any) {
+            console.error("Error uploading file:", err.message);
             alert("Upload failed.");
+        } finally {
             setUploading(false);
-            return;
         }
-
-        const { data } = supabase.storage.from("verification-files").getPublicUrl(filePath);
-        const imageUrl = data.publicUrl;
-
-        await submitVerification(imageUrl);
-        setUploading(false);
     };
 
     const submitVerification = async (fileUrl: string) => {
-        const { error } = await supabase
-            .from("verificationUploads")
-            .insert([
-                {
-                    lost_item_id: id,
-                    user_id: item.owner_id,
-                    image_url: fileUrl,
-                    status: "pending",
-                },
-            ]);
+        try {
+            const { error } = await supabase
+                .from("verificationUploads")
+                .insert([
+                    {
+                        lost_item_id: id,
+                        user_id: item.owner_id,
+                        image_url: fileUrl,
+                        status: "pending",
+                    },
+                ]);
 
-        if (error) {
-            console.error("Error submitting verification:", error.message);
-            alert("Verification submission failed.");
-        } else {
+            if (error) throw error;
             alert("Verification submitted successfully!");
+        } catch (err: any) {
+            console.error("Error submitting verification:", err.message);
+            alert("Verification submission failed.");
         }
     };
 
@@ -158,50 +205,54 @@ const ViewPost = () => {
     return (
         <div className="flex flex-col mt-32 mx-10 bg-white p-16 rounded-lg">
             <h1 className="text-3xl font-bold mb-4">{item.title}</h1>
-            <p className="text-lg"><strong>Category:</strong> {item.category}</p>
-            <p className="text-lg break-words"><strong>Description:</strong> {item.description}</p>
-            <p className="text-lg"><strong>Date Lost:</strong> {item.date_lost}</p>
-            <p className="text-lg"><strong>Status:</strong> {item.status}</p>
-            {item.image_url ? (
-                <img src={item.image_url} alt="Lost Item" className="h-auto mt-4 rounded-lg" />
-            ) : (
-                <p>No Image Available</p>
+            
+            {verificationRequested && (
+                <div className="my-4 p-4 bg-yellow-100 rounded-lg">
+                    <p>Admins are currently requesting additional proof of ownership.</p>
+                </div>
             )}
+
+            <div className="w-full flex flex-wrap gap-8">
+                {item.image_url ? (
+                    <img src={item.image_url} alt="Lost Item" className="h-auto rounded-lg lg:max-w-lg object-cover" />
+                ) : (
+                    <p>No Image Available</p>
+                )}
+
+                <div className="p-8 bg-green-100 flex flex-col flex-grow text-lg">
+                    <p className="text-xl font-bold">Item Details</p>
+                    <p><b>Category:</b> {item.category}</p>
+                    <p><b>Description:</b> {item.description}</p>
+                    <p><b>Date Lost:</b> {item.date_lost}</p>
+                </div>
+
+                <div className="p-8 bg-red-100 flex flex-col flex-grow">
+                    <p className="text-xl font-bold">Owner Information</p>
+                    {ownerData ? (
+                        <>
+                            <p><b>Owner:</b> {ownerData.username}</p>
+                            <p><b>Email:</b> {ownerData.email}</p>
+                            <p><b>Phone:</b> {ownerData.phone}</p>
+                        </>
+                    ) : (
+                        <p>Owner information not available</p>
+                    )}
+                </div>
+            </div>
 
             {isOwner && verificationRequested && (
                 <div className="mt-6 p-4 bg-yellow-100 rounded-lg">
-                    <h2 className="text-xl font-bold">Admin Verification Required</h2>
-                    <p>Please upload a valid verification document or image to confirm ownership.</p>
-                    <input
-                        type="file"
-                        accept="image/*,application/pdf"
-                        onChange={(e) => setFile(e.target.files?.[0] || null)}
-                        className="mt-4"
-                    />
-                    <button
-                        onClick={handleFileUpload}
-                        disabled={!file || uploading}
-                        className={`mt-4 px-4 py-2 rounded-lg ${
-                            file ? "bg-green-600 text-white hover:bg-green-700" : "bg-gray-400 text-gray-200"
-                        }`}
-                    >
-                        {uploading ? "Uploading..." : "Upload Verification"}
+                    <h2 className="text-xl font-bold">Upload Verification Document</h2>
+                    <input type="file" accept="image/*,application/pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} className="mt-4" />
+                    <button onClick={handleFileUpload} disabled={!file || uploading} className="mt-4 px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">
+                        {uploading ? "Uploading..." : "Upload"}
                     </button>
                 </div>
-            )}      
-
-            {isAdmin && (
-                <button
-                    onClick={handleRequestVerification}
-                    className="mt-6 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                >
-                    Request Verification
-                </button>
             )}
 
-            <button onClick={() => router.back()} className="mt-6 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                Go Back
-            </button>
+            {isAdmin && <button onClick={handleRequestVerification} className="mt-6 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Request Verification</button>}
+
+            <button onClick={() => router.back()} className="mt-6 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">Go Back</button>
         </div>
     );
 };
