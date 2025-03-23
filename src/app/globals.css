@@ -1,15 +1,17 @@
 @import "tailwindcss";
 
+
 :root {
-  --background: linear-gradient(135deg, var(--rematchRed),  var(--rematchGreen));
+  --background: linear-gradient(135deg, var(--pastelRed),  var(--pastelGreen));
   --foreground: #171717;
   --font-inter: "Inter", sans-serif;
-  --font-caveat-brush: "Caveat Brush", cursive;
+  --font-lilita-one: "Lilita One", sans-serif;
   --rematchRed: #e16449;
   --beige: #fce8e4;
   --pastelBlue: #e7e7e7;
   --rematchGreen: #34ce46;
-  --pastelGreen: #e4fce7;
+  --pastelGreen: #D3E9D7;
+  --pastelRed: #DBBBB8;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,24 +23,28 @@
 
 body {
   background: var(--background);
-  background-attachment: fixed; /* Prevents scrolling from affecting the gradient */
+  background-attachment: fixed; 
   background-size: cover;
   color: var(--foreground);
   font-family: var(--font-inter);
 }
 
-.caveatBrush {
-  font-family: var(--font-caveat-brush);
+.lilitaOne {
+  font-family: var(--font-lilita-one);
 }
 
 .rematchRed {
-  background: var(--rematchRed)
+  background: var(--rematchRed);
 }
 
 .rematchGreen {
-  background: var(--rematchGreen)
+  background: var(--rematchGreen);
 }
 
 .pastelBlue {
-  background: var(--pastelBlue)
+  background: var(--pastelBlue);
+}
+
+.gradientLine {
+  background: linear-gradient(135deg, var(--right),  var(--left));
 }
