@@ -49,17 +49,18 @@ export class Owner extends User {
 
     async declareItemAsFound(lostItemId: number): Promise<boolean> {
         console.log(`Item ${lostItemId} declared as found by ${this.getName()}`);
-
-        const { error } = await this.supabase.from("lostItem").update({
-            status: true, 
-
-        }).match({ id: lostItemId, owner_id: this.getUserId() });
-
+    
+        const { error } = await this.supabase
+            .from("lostItem")
+            .update({ status: true })
+            .match({ id: lostItemId, owner_id: this.getUserId() });
+    
         if (error) {
             console.error("Error declaring item as found:", error);
             return false;
         }
-
+    
+        console.log("Item status updated successfully!");
         return true;
     }
 }
