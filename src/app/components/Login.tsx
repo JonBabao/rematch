@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import RedButton from '../styles/redButton';
 import Link from "next/link";
 import { User } from '../../models/User'
+import Logo from '../../../public/images/rematch.png'
 
 const Login: React.FC = () => {
     const supabase = createClient();
@@ -108,10 +109,12 @@ const Login: React.FC = () => {
 
     return(
         <div className="flex flex-col items-center justify-center w-full mt-10">
-            <div className = "flex flex-col bg-white mx-10 py-24 px-32 w-auto rounded-lg justify-center items-center shadow-xl">
-                <p className = "caveatBrush text-gray-800 text-3xl">
-                    ReMatch
-                </p>
+            <div className = "flex flex-col bg-white mx-10 py-16 px-10 lg:px-32 w-auto rounded-lg justify-center items-center shadow-xl">
+                <img 
+                    src={Logo.src}
+                    className="w-32 mb-2"
+                />
+                <h1 className="lilitaOne text-4xl">ReMATCH</h1>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-8 w-[70vw] lg:w-full">
                     <input
@@ -135,7 +138,7 @@ const Login: React.FC = () => {
                     <button
                         type="button"
                         onClick={handleForgotPassword}
-                        className="text-sm text-left text-blue-600 hover:text-blue-800 w-[70vw] lg:w-full"
+                        className="text-sm text-left text-blue-600 hover:text-blue-800 w-[70vw] lg:w-full cursor-pointer"
                     >
                         Forgot Password?
                     </button>
@@ -153,7 +156,7 @@ const Login: React.FC = () => {
                 <div className="flex flex-row text-sm mt-2 w-[70vw] lg:w-full text-center justify-center">
                     <p>Not a member?&nbsp;</p>
                     <Link href="/auth/register">
-                        <button type="button" className="text-blue-600 hover:text-blue-800">
+                        <button type="button" className="text-blue-600 hover:text-blue-800 cursor-pointer">
                             Register now
                         </button>
                     </Link>
