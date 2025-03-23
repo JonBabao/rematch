@@ -14,7 +14,7 @@ const GreenButton: React.FC<ButtonProperties> = ({ children, onClick, style, typ
             type={type}
             onClick={onClick}
             disabled={disabled}
-            className="rematchGreen text-white font-bold rounded-lg py-4 px-6 flex items-center justify-center hover:bg-[#2d2d2d] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rematchGreen text-white font-bold rounded-lg py-4 px-6 flex items-center justify-center hover:bg-[#2d2d2d] focus:outline-none disabled:opacity-50 cursor-pointer"
             style={style}
         >
             {children}
