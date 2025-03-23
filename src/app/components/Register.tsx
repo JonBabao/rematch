@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import GreenButton from '../styles/greenButton';
 import Link from 'next/link';
 import { createClient } from "../../../utils/supabase/client";
+import Logo from '../../../public/images/rematch.png'
 
 const Register: React.FC = () => {
     const supabase = createClient();
@@ -63,10 +64,14 @@ const Register: React.FC = () => {
 
     return (
         <div className="flex flex-col items-center justify-center w-full mt-10">
-            <div className="flex flex-col bg-white mx-10 px-32 py-16 w-[80vw] lg:w-auto rounded-lg justify-center items-center ">
-                <h1 className="caveatBrush text-3xl text-center w-[70vw] lg:w-full">ReMatch</h1>
+            <div className="flex flex-col bg-white mx-10 px-28 py-10 w-[80vw] lg:w-auto rounded-lg justify-center items-center ">
+                <img 
+                    src={Logo.src}
+                    className="w-32 mb-2"
+                />
+                <h1 className="lilitaOne text-4xl">ReMATCH</h1>
                 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-8 w-[70vw] lg:w-full">
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-6 w-[70vw] lg:w-full">
                     <input
                         type="text"
                         value={username}
@@ -119,7 +124,7 @@ const Register: React.FC = () => {
                 <div className="flex flex-row text-sm mt-2 w-[70vw] lg:w-full text-center items-center justify-center">
                     <p>Have an account already?&nbsp;</p>
                     <Link href="/auth/login">
-                        <button type="button" className="text-sm text-blue-600 hover:text-blue-800">
+                        <button type="button" className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer">
                             Login
                         </button>
                     </Link>
