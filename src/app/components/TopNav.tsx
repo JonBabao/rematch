@@ -7,6 +7,7 @@ import { createClient } from "../../../utils/supabase/client";
 import { User } from "@supabase/supabase-js"; 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Logo from '../../../public/images/rematch.png'
 
 const TopNav: React.FC = () => {
     const router = useRouter();
@@ -51,23 +52,29 @@ const TopNav: React.FC = () => {
         <div>
             {/* Desktop Navbar */}
             <nav className="hidden fixed lg:flex flex-row items-center rematchRed text-gray-100 text-base w-full h-20 inset-0 z-50">
-                <h1 className="caveatBrush text-3xl ml-4">ReMatch</h1>
+                <Link href="/dashboard/home">
+                    <img 
+                        src={Logo.src}
+                        className="w-14 ml-4"
+                    />
+                </Link>
+                <h1 className="lilitaOne text-3xl ml-4">ReMatch</h1>
                 <div className="flex flex-grow items-center ml-16 font-semibold text-base gap-10">
-                    <a href="/dashboard/home" className="p-7 hover:bg-[#292929] transition-colors">Home</a>
-                    <a className="p-7 hover:bg-[#292929] transition-colors">Help</a>
+                    <a href="/dashboard/home" className="p-7 hover:bg-[#D3E9D7] hover:text-gray-700 transition-colors cursor-pointer">Home</a>
+                    <a className="p-7 hover:bg-[#D3E9D7] hover:text-gray-700 transition-colors cursor-pointer">Help</a>
                 </div>
 
                 <div className="flex gap-10 mr-10 font-semibold text-base">
                     {user ? (
                         <>  <Link href="/dashboard/reportPost">
-                                <button className="flex justify-center items-center p-2 gap-2 hover:underline">
+                                <button className="flex justify-center items-center p-2 gap-2 hover:underline cursor-pointer">
                                     <FiPlus size={25} />
                                     Report Missing Item
                                 </button>
                             </Link>
                             <Link href="/auth/login">
                                 <button
-                                    className="p-2 px-3 rounded-lg border-2 border-gray-200 hover:bg-[#1c1c1c]"
+                                    className="p-2 px-3 rounded-lg border-2 border-gray-200 hover:bg-[#D3E9D7] hover:text-gray-700"
                                     onClick={handleLogout}
                                 >
                                     Log Out
@@ -78,12 +85,12 @@ const TopNav: React.FC = () => {
                     ) : (
                         <>  
                             <Link href="/auth/login">   
-                                <button className="p-2 px-3 rounded-lg border-2 border-gray-200 hover:bg-[#1c1c1c]">
+                                <button className="p-2 px-3 rounded-lg border-2 border-gray-200 hover:bg-[#D3E9D7] hover:text-gray-700 cursor-pointer">
                                     Log In
                                 </button>
                             </Link>
                             <Link href="/auth/register">
-                                <button className="bg-[#34ce46] p-2.5 px-3 rounded-lg text-[#292929] hover:bg-green-500">
+                                <button className="bg-[#C5E2CA] p-2.5 px-3 rounded-lg text-[#292929] hover:bg-[#D3E9D7] cursor-pointer">
                                     Register
                                 </button>
                             </Link>
