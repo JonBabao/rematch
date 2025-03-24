@@ -58,7 +58,7 @@ const TopNav: React.FC = () => {
                         className="w-14 ml-4"
                     />
                 </Link>
-                <h1 className="lilitaOne text-3xl ml-4">ReMatch</h1>
+                <h1 className="lilitaOne text-3xl ml-4">ReMATCH</h1>
                 <div className="flex flex-grow items-center ml-16 font-semibold text-base gap-10">
                     <a href="/dashboard/home" className="p-7 hover:bg-[#D3E9D7] hover:text-gray-700 transition-colors cursor-pointer">Home</a>
                     <a className="p-7 hover:bg-[#D3E9D7] hover:text-gray-700 transition-colors cursor-pointer">Help</a>
@@ -100,17 +100,17 @@ const TopNav: React.FC = () => {
             </nav>
 
             {/* Mobile Navbar */}
-            <nav className="fixed flex flex-row h-20 w-full text-gray-200 lg:hidden items-center justify-center bg-[#131313] inset-0 z-50">
+            <nav className="fixed flex flex-row h-20 w-full text-gray-200 lg:hidden items-center justify-center rematchRed inset-0 z-50">
                 <button onClick={toggleMenu} className="ml-6 z-50">
                     <GiHamburgerMenu size={32} />
                 </button>
 
-                <h1 className="caveatBrush -ml-8 text-3xl text-center flex-grow">ReMatch</h1>
+                <h1 className="lilitaOne -ml-8 text-3xl text-center flex-grow">ReMatch</h1>
 
                 {isOpen && (
-                    <div className="absolute top-16 left-0 w-full bg-[#121212] text-white flex flex-col p-4 shadow-lg z-40">
+                    <div className="absolute top-16 left-0 w-full rematchRed text-white flex flex-col p-4 shadow-lg z-40">
                         <a href="#" className="p-3 hover:bg-[#2d2d2d]">Home</a>
-                        <a href="#" className="p-3 hover:bg-[#2d2d2d]">Leaderboards</a>
+                        <a href="#" className="p-3 hover:bg-[#2d2d2d]">About Us</a>
                         <a href="#" className="p-3 hover:bg-[#2d2d2d]">Help</a>
                         {user ? (
                             <button
