@@ -72,7 +72,7 @@ const ReportPost: React.FC = () => {
             imageUrl = data.publicUrl;
         }
     
-        const lostItemId = await owner.reportLostItem(category, description, dateLost, imageUrl);
+        const lostItemId = await owner.reportLostItem(title, category, description, dateLost, imageUrl);
         if (!lostItemId) {
             setError("Failed to create post. Please try again.");
             setLoading(false);
