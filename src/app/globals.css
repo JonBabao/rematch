@@ -45,6 +45,11 @@ body {
   background: var(--pastelBlue);
 }
 
-.gradientLine {
-  background: linear-gradient(135deg, var(--right),  var(--left));
+.pastelGreen {
+  background: var(--pastelGreen);
 }
+
+.gradientLine {
+  background: linear-gradient(135deg, var(--pastelRed),  var(--pastelGreen));
+}
+
