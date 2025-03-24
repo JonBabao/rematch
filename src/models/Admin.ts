@@ -9,13 +9,13 @@ export class Admin extends User {
         this.supabase = createClient();
     }
 
-    async requestVerification(lostItemId: string): Promise<boolean> {
+    async requestVerification(lostItemId: string, user_id: string, description: string): Promise<boolean> {
         const { error } = await this.supabase.from("adminRequests").insert([
             {
                 lost_item_id: lostItemId,
-                user_id: this.getUserId(),
-                request_type: "image_verification",
-                status: false,
+                user_id: user_id,
+                description: description,
+                status: "pending",
             },
         ]);
 
