@@ -71,7 +71,7 @@ const Register: React.FC = () => {
                 />
                 <h1 className="lilitaOne text-4xl">ReMATCH</h1>
                 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-6 w-[70vw] lg:w-full">
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-6 w-[70vw] lg:max-w-56">
                     <input
                         type="text"
                         value={username}
