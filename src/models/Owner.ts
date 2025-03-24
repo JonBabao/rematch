@@ -24,13 +24,13 @@ export class Owner extends User {
         return new Owner(data.id, data.username, data.email, data.phone);
     }
 
-    async reportLostItem(category: string, description: string, dateLost: string, imageUrl: string): Promise<number | null> {
+    async reportLostItem(title: string, category: string, description: string, dateLost: string, imageUrl: string): Promise<number | null> {
         console.log(`Lost item reported by ${this.getName()}`);
 
         const { data, error } = await this.supabase.from("lostItem").insert([
             {
                 owner_id: this.getUserId(), 
-                title: category,
+                title: title,
                 category: category,
                 description: description,
                 date_lost: dateLost,
