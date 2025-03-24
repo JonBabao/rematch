@@ -45,13 +45,13 @@ const LostItemsList = () => {
     return (
         <div>
             <div className="flex flex-col lg:flex-row items-center justify-between mb-4">
-                <h2 className="font-bold text-3xl caveatBrush text-center lg:text-left">Lost Items</h2>
+                <h2 className="font-bold text-[#e16449] text-4xl caveatBrush text-center mb-2 lg:mb-0 lg:text-left">Lost Items</h2>
                 <input 
                     type="text" 
                     placeholder="Search by category..." 
                     value={searchQuery} 
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="border border-gray-300 rounded-md px-4 py-2 w-full lg:w-64"
+                    className="shadow-outline shadow-md rounded-md px-4 py-2 w-full lg:w-64 focus:outline-none"
                 />
             </div>
 
@@ -63,18 +63,21 @@ const LostItemsList = () => {
                         <button 
                             key={item.id} 
                             onClick={() => router.push(`/dashboard/viewPost/${item.id}`)} 
-                            className="flex flex-col flex-grow break-words w-full lg:w-64 max-w-xl border-gray-200 border-2 p-4 rounded-lg text-start"
+                            className="flex flex-col gradientLine flex-grow break-words w-full lg:w-64 max-w-sm shadow-md shadow-outline p-4 rounded-lg text-start cursor-pointer transform hover:scale-105"
                         >
-                            <h3 className="text-xl font-bold">{item.title}</h3>
-                            <p className="text-xs mb-2">Posted {timeAgo(item.created_at)}</p>
-                            <p><strong>Category:</strong> {item.category}</p>
-                            <p><strong>Description:</strong> {item.description}</p>
-                            <p><strong>Date Lost:</strong> {item.date_lost}</p>
                             {item.image_url ? (
-                                <img src={item.image_url} alt="Lost Item" className="w-auto mt-8" />
+                                <img src={item.image_url} alt="Lost Item" className="w-auto my-4" />
                             ) : (
                                 <p>No Image Available</p>
                             )}
+                            <div className="border-t-1 text-sm border-gray-200 pt-2">
+                                <h3 className="text-xl font-bold">{item.title}</h3>
+                                <p className="text-xs mb-2">Posted {timeAgo(item.created_at)}</p>
+                                <p ><strong>Category:</strong> {item.category}</p>
+                                <p><strong>Description:</strong> {item.description}</p>
+                                <p><strong>Date Lost:</strong> {item.date_lost}</p>
+                            </div>
+
                         </button>
                     ))}
                 </div>
