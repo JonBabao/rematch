@@ -21,7 +21,14 @@ const ReportPost: React.FC = () => {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            setImageFile(e.target.files[0]);
+            const file = e.target.files[0];
+            
+            if (!file.type.startsWith('image/')) {
+                alert('Please upload an image file only');
+                return;
+            }
+            
+            setImageFile(file);
         }
     };
 
